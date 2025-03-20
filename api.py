@@ -6,7 +6,6 @@ from rake_nltk import Rake
 import nltk
 import os
 import traceback
-import uuid  # ✅ Import to generate unique filenames
 
 # Ensure NLTK stopwords are downloaded
 nltk.download("stopwords")
@@ -75,13 +74,8 @@ def generate_tts():
         return jsonify({"error": "Text is required"}), 400
 
     try:
-        # ✅ Generate a unique filename for each audio file
-        unique_filename = f"audio_{uuid.uuid4().hex}.mp3"
-        file_path = os.path.join(AUDIO_DIR, unique_filename)
-
-        hindi_trans(text, output_filename=file_path)  # ✅ Pass the unique filename
-
-        return jsonify({"audio_file": f"/audio/{unique_filename}"})  # ✅ Return correct file path
+        filename = hindi_trans(text)  # ✅ FIXED: Removed 'output_filename' argument
+        return jsonify({"audio_file": f"/audio/{filename}"})  # ✅ Correct file path
     except Exception as e:
         print("❌ ERROR in /text_2_speech:", str(e))
         traceback.print_exc()
