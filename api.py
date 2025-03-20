@@ -3,7 +3,11 @@ from news_scraper import com_article
 from sentiment_analysis import ana_sentiment
 from text_to_speech import hindi_trans
 from rake_nltk import Rake
-import traceback 
+import nltk
+import traceback
+
+# Ensure NLTK stopwords are downloaded
+nltk.download("stopwords")
 
 app = Flask(__name__)
 
@@ -12,9 +16,14 @@ def home():
     return jsonify({"message": "API is working!"})
 
 def extract_keywords(text):
-    rake = Rake()
-    rake.extract_keywords_from_text(text)
-    return rake.get_ranked_phrases()[:5]
+    try:
+        rake = Rake()
+        rake.extract_keywords_from_text(text)
+        return rake.get_ranked_phrases()[:5]
+    except Exception as e:
+        print("❌ ERROR extracting keywords:", str(e))
+        traceback.print_exc()
+        return []
 
 @app.route("/fetch_news_data", methods=["GET"])
 def get_news():
