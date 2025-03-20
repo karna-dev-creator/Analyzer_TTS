@@ -1,42 +1,38 @@
 import requests
-import os
 
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")  # Get API key from environment variables
+GNEWS_API_KEY = "db38be3daf22a16cf2b034ad12dcdb59"
 
 def com_article(company_name, start_date=None, end_date=None):
-    if not NEWS_API_KEY:
-        print("❌ Error: NEWS_API_KEY is missing!")
-        return []
-
-    url = f"https://newsapi.org/v2/everything?q={company_name}&apiKey={NEWS_API_KEY}&language=en"
-
+    """Fetches news articles for a given company from GNews API."""
+    
+    url = f"https://gnews.io/api/v4/search?q={company_name}&apikey={GNEWS_API_KEY}&lang=en"
+    
+    # Add date filters only if provided
     if start_date:
         url += f"&from={start_date}"
     if end_date:
         url += f"&to={end_date}"
-
-    print(f"🔍 Fetching NewsAPI: {url}")  # Log the request URL
-
+    
     response = requests.get(url)
 
     if response.status_code != 200:
-        print(f"❌ NewsAPI Error: {response.status_code} - {response.text}")
+        print("Error fetching news:", response.text)
         return []
 
     data = response.json()
 
     if "articles" not in data or not data["articles"]:
-        print("⚠️ No articles found from NewsAPI")
-        return []
+        return []  # Return empty list if no articles are found
 
-    print(f"✅ Articles Found: {len(data['articles'])}")
-    return [
-        {
-            "title": item.get("title", "No title"),
-            "summary": item.get("description", "No summary"),
+    articles = []
+
+    for item in data["articles"][:10]:  # Get top 10 articles
+        articles.append({
+            "title": item.get("title", "No title available"),
+            "summary": item.get("description", "No summary available"),
             "link": item.get("url", "#"),
-            "publishedAt": item.get("publishedAt", "Unknown"),
-            "source": item["source"].get("name", "Unknown")
-        }
-        for item in data["articles"][:10]  # Get top 10 articles
-    ]
+            "publishedAt": item.get("publishedAt", "Unknown date"),
+            "source": item.get("source", {}).get("name", "Unknown source")
+        })
+
+    return articles
