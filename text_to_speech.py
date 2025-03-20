@@ -1,24 +1,24 @@
-import os
-import hashlib
 from gtts import gTTS
 from deep_translator import GoogleTranslator
+import time
+import os
+
+# Ensure the "audio" folder exists
+AUDIO_DIR = "audio"
+os.makedirs(AUDIO_DIR, exist_ok=True)
 
 def hindi_trans(text):
-    """ Convert text to Hindi speech and save it as a unique audio file. """
+    """Convert text to Hindi speech and save as a unique file."""
     
     # Translate English text to Hindi
     translated_text = GoogleTranslator(source="auto", target="hi").translate(text)
 
-    # Generate a unique filename using a hash of the text
-    filename = f"tts_{hashlib.md5(text.encode()).hexdigest()}.mp3"
-    filepath = os.path.join("audio", filename)
+    # Generate a unique filename using timestamp
+    filename = f"audio_{int(time.time())}.mp3"
+    file_path = os.path.join(AUDIO_DIR, filename)
 
-    # Ensure the "audio" folder exists
-    os.makedirs("audio", exist_ok=True)
+    # Convert translated Hindi text to speech
+    tts = gTTS(text=translated_text, lang="hi")
+    tts.save(file_path)
 
-    # Check if the file already exists (avoid redundant conversions)
-    if not os.path.exists(filepath):
-        tts = gTTS(text=translated_text, lang="hi")
-        tts.save(filepath)
-
-    return filename  # Return the filename to be played in Streamlit
+    return filename  # Return only the filename, not full path
