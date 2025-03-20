@@ -1,56 +1,42 @@
 import requests
+import os
 
-NEWS_API_KEY = "69831002870340c5a08ce259c555f639"
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")  # Get API key from environment variables
 
 def com_article(company_name, start_date=None, end_date=None):
-    """
-    Fetches the latest news articles related to a company using NewsAPI.
-    
-    Parameters:
-        company_name (str): The company name or keyword to search for.
-        start_date (str): Start date in YYYY-MM-DD format.
-        end_date (str): End date in YYYY-MM-DD format.
-    
-    Returns:
-        list: A list of dictionaries containing news article details.
-    """
-    # Base API URL
-    url = f"https://newsapi.org/v2/everything?q={company_name}&apiKey={NEWS_API_KEY}"
+    if not NEWS_API_KEY:
+        print("❌ Error: NEWS_API_KEY is missing!")
+        return []
 
-    # Add date filters if provided
+    url = f"https://newsapi.org/v2/everything?q={company_name}&apiKey={NEWS_API_KEY}&language=en"
+
     if start_date:
         url += f"&from={start_date}"
     if end_date:
         url += f"&to={end_date}"
 
-    # Set language filter and sorting method
-    url += "&language=en&sortBy=publishedAt"
+    print(f"🔍 Fetching NewsAPI: {url}")  # Log the request URL
 
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an error for bad HTTP responses (4xx, 5xx)
+    response = requests.get(url)
 
-        data = response.json()
-
-        # Check if articles exist
-        if "articles" not in data or not data["articles"]:
-            print("No articles found.")
-            return []
-
-        articles = []
-
-        # Get top 10 articles
-        for item in data["articles"][:10]:
-            articles.append({
-                "title": item.get("title", "No title available"),
-                "summary": item.get("description", "No summary available"),
-                "link": item.get("url", "#"),
-                "publishedAt": item.get("publishedAt", "Unknown date"),
-                "source": item["source"].get("name", "Unknown source")
-            })
-
-        return articles
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching news: {e}")
+    if response.status_code != 200:
+        print(f"❌ NewsAPI Error: {response.status_code} - {response.text}")
         return []
+
+    data = response.json()
+
+    if "articles" not in data or not data["articles"]:
+        print("⚠️ No articles found from NewsAPI")
+        return []
+
+    print(f"✅ Articles Found: {len(data['articles'])}")
+    return [
+        {
+            "title": item.get("title", "No title"),
+            "summary": item.get("description", "No summary"),
+            "link": item.get("url", "#"),
+            "publishedAt": item.get("publishedAt", "Unknown"),
+            "source": item["source"].get("name", "Unknown")
+        }
+        for item in data["articles"][:10]  # Get top 10 articles
+    ]
