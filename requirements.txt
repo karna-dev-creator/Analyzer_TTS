@@ -1,0 +1,10 @@
+streamlit
+flask
+requests
+gtts
+nltk
+rake-nltk
+plotly
+deep-translator
+textblob
+matplotlib
