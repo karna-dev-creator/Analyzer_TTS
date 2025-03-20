@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 import plotly.express as px
-import os
 
 # API endpoint (Update with Render API URL if deployed)
 API_URL = "https://your-api-name.onrender.com"
@@ -54,11 +53,7 @@ if page == "Home":
     if "news_data" in st.session_state:
         st.subheader(f"📢 Fetched News Articles for {st.session_state.news_data['company']}")
 
-        sentiments = {"Positive": 0, "Negative": 0, "Neutral": 0}
-
         for i, article in enumerate(st.session_state.news_data["articles"]):
-            sentiments[article["sentiment"]] += 1
-
             with st.expander(f"📌 {article['title']}"):
                 st.write(f"🔹 **Sentiment:** {article['sentiment']}")
                 st.write(f"🔗 [Read More]({article['link']})")
@@ -70,10 +65,13 @@ if page == "Home":
                 if st.button(f"🎙️ Convert to Hindi {i+1}", key=f"tts_{i}"):
                     with st.spinner("Generating Hindi audio... 🎧"):
                         tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
+                        
                         if tts_response.status_code == 200:
                             audio_data = tts_response.json()
-                            audio_file_url = f"{API_URL}{audio_data['audio_file']}"
+                            audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Unique file
                             st.audio(audio_file_url)
+                        else:
+                            st.error("Failed to generate audio.")
 
 # Sentiment Analysis Page - Display sentiment distribution chart
 elif page == "Sentiment Analysis":
