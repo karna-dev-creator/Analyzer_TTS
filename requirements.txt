@@ -8,3 +8,4 @@ plotly
 deep-translator
 textblob
 matplotlib
+gunicorn
