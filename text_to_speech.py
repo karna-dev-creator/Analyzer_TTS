@@ -1,7 +1,7 @@
 from gtts import gTTS
 from deep_translator import GoogleTranslator
-import time
 import os
+import uuid  # ✅ Use UUID for unique filenames
 
 # Ensure the "audio" folder exists
 AUDIO_DIR = "audio"
@@ -13,12 +13,12 @@ def hindi_trans(text):
     # Translate English text to Hindi
     translated_text = GoogleTranslator(source="auto", target="hi").translate(text)
 
-    # Generate a unique filename using timestamp
-    filename = f"audio_{int(time.time())}.mp3"
+    # ✅ Generate a unique filename using UUID
+    filename = f"audio_{uuid.uuid4().hex}.mp3"
     file_path = os.path.join(AUDIO_DIR, filename)
 
     # Convert translated Hindi text to speech
     tts = gTTS(text=translated_text, lang="hi")
     tts.save(file_path)
 
-    return filename  # Return only the filename, not full path
+    return filename  # ✅ Return only the filename
