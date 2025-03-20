@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 import plotly.express as px
 
-# API endpoint (Update with Render API URL if deployed)
-API_URL = "https://your-api-name.onrender.com"
+# API endpoint 
+API_URL = "https://analyzer-tts.onrender.com"
 
 # Set page configurations
 st.set_page_config(
@@ -47,7 +47,7 @@ if page == "Home":
             if response.status_code == 200:
                 st.session_state.news_data = response.json()
             else:
-                st.warning("No articles found.")
+                st.warning("⚠️ No articles found.")
 
     # Display news articles
     if "news_data" in st.session_state:
@@ -61,17 +61,17 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
-                # Generate a unique audio filename for each article
+                # Audio Button with Unique Filename
                 if st.button(f"🎙️ Convert to Hindi {i+1}", key=f"tts_{i}"):
                     with st.spinner("Generating Hindi audio... 🎧"):
                         tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
                         
                         if tts_response.status_code == 200:
                             audio_data = tts_response.json()
-                            audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Unique file
+                            audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # ✅ Unique file per article
                             st.audio(audio_file_url)
                         else:
-                            st.error("Failed to generate audio.")
+                            st.error("❌ Failed to generate audio.")
 
 # Sentiment Analysis Page - Display sentiment distribution chart
 elif page == "Sentiment Analysis":
@@ -91,9 +91,9 @@ elif page == "Sentiment Analysis":
         )
         st.plotly_chart(fig)
     else:
-        st.warning("No data available. Please fetch news first.")
+        st.warning("⚠️ No data available. Please fetch news first.")
 
 # Settings Page
 elif page == "Settings":
     st.title("⚙️ Settings")
-    st.write("No settings available yet. More features coming soon! 🚀")
+    st.write("🔧 No settings available yet. More features coming soon! 🚀")
