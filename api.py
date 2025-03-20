@@ -6,8 +6,9 @@ from rake_nltk import Rake
 import nltk
 import traceback
 
-# Ensure NLTK stopwords are downloaded
-nltk.download("stopwords")
+# Ensure NLTK stopwords are downloaded (only if not already present)
+nltk.data.path.append("/usr/share/nltk_data")
+nltk.download("stopwords", quiet=True)
 
 app = Flask(__name__)
 
@@ -21,7 +22,6 @@ def extract_keywords(text):
         rake.extract_keywords_from_text(text)
         return rake.get_ranked_phrases()[:5]
     except Exception as e:
-        print("❌ ERROR extracting keywords:", str(e))
         traceback.print_exc()
         return []
 
@@ -53,8 +53,7 @@ def get_news():
         })
 
     except Exception as e:
-        print("❌ ERROR in /fetch_news_data:", str(e))  # Print error
-        traceback.print_exc()  # Print full error stacktrace
+        traceback.print_exc()
         return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 @app.route("/text_2_speech", methods=["POST"])
@@ -69,7 +68,6 @@ def generate_tts():
         filename = hindi_trans(text)
         return jsonify({"audio_file": filename})
     except Exception as e:
-        print("❌ ERROR in /text_2_speech:", str(e))  # Print error
         traceback.print_exc()
         return jsonify({"error": "Text-to-Speech Error", "details": str(e)}), 500
 
