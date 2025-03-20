@@ -10,7 +10,12 @@ def com_article(company_name, start_date=None, end_date=None):
 
     url = f"https://gnews.io/api/v4/search?q={company_name}&apikey={API_KEY}&lang=en"
 
+    print(f"🔍 Fetching articles from: {url}")  # Debugging line
+
     response = requests.get(url)
+
+    print(f"🔎 API Status Code: {response.status_code}")  # Debugging line
+    print(f"📜 API Response: {response.text}")  # Debugging line
 
     if response.status_code != 200:
         print("❌ API Error:", response.text)
@@ -19,7 +24,8 @@ def com_article(company_name, start_date=None, end_date=None):
     data = response.json()
 
     if "articles" not in data or not data["articles"]:
-        return []  # Return empty list if no articles are found
+        print("❌ No articles found in API response.")  # Debugging line
+        return []
 
     articles = []
     for item in data["articles"][:10]:  # Get top 10 articles
@@ -31,4 +37,5 @@ def com_article(company_name, start_date=None, end_date=None):
             "source": item["source"].get("name", "Unknown source")
         })
 
+    print(f"✅ Articles fetched successfully: {len(articles)} articles found.")  # Debugging line
     return articles
