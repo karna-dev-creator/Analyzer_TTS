@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import plotly.express as px
-import time  # To create unique keys
+import time  
 
 # API endpoint
 API_URL = "https://analyzer-tts.onrender.com"
@@ -47,6 +47,7 @@ if page == "Home":
 
             if response.status_code == 200:
                 st.session_state.news_data = response.json()
+                st.session_state.audio_files = {}  # Reset audio files
             else:
                 st.warning("⚠️ No articles found.")
 
@@ -62,9 +63,10 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
-                # Generate Unique Key for Each Button to Avoid Caching
-                unique_key = f"tts_{i}_{int(time.time())}"
+                # Generate Unique Key for Each Button
+                unique_key = f"tts_{i}"
 
+                # Button for generating text-to-speech
                 if st.button(f"🎙️ Convert to Hindi {i+1}", key=unique_key):
                     with st.spinner("Generating Hindi audio... 🎧"):
                         tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
@@ -73,14 +75,18 @@ if page == "Home":
                             audio_data = tts_response.json()
 
                             if "audio_file" in audio_data:
-                                audio_file_url = f"{API_URL}/{audio_data['audio_file']}"  # Fix missing "/"
+                                audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Fix missing "/"
+                                st.session_state.audio_files[unique_key] = audio_file_url  # Store file path
                                 st.success("✅ Audio generated successfully!")
-                                st.audio(audio_file_url)
                             else:
                                 st.error("⚠️ Audio file not found in response.")
 
                         else:
                             st.error("❌ Failed to generate audio. Try again later.")
+
+                # Play the generated audio if it exists
+                if unique_key in st.session_state.audio_files:
+                    st.audio(st.session_state.audio_files[unique_key])
 
 # Sentiment Analysis Page - Display sentiment distribution chart
 elif page == "Sentiment Analysis":
