@@ -4,21 +4,20 @@ from sentiment_analysis import ana_sentiment
 from text_to_speech import hindi_trans
 from rake_nltk import Rake
 import nltk
-import traceback
 import os
+import traceback
 
 # Ensure NLTK stopwords are downloaded
 nltk.download("stopwords")
 
 app = Flask(__name__)
 
-# Define directory to store audio files
-AUDIO_FOLDER = "audio"
-os.makedirs(AUDIO_FOLDER, exist_ok=True)
+# Ensure the "audio" folder exists
+AUDIO_DIR = "audio"
+os.makedirs(AUDIO_DIR, exist_ok=True)
 
 @app.route("/", methods=["GET"])
 def home():
-    """ Home route to check API status """
     return jsonify({"message": "API is working!"})
 
 def extract_keywords(text):
@@ -67,7 +66,7 @@ def get_news():
 
 @app.route("/text_2_speech", methods=["POST"])
 def generate_tts():
-    """ Convert text to Hindi speech and return the generated audio file URL. """
+    """ Convert text to Hindi speech and return the generated audio file path. """
     data = request.json
     text = data.get("text", "")
 
@@ -75,19 +74,19 @@ def generate_tts():
         return jsonify({"error": "Text is required"}), 400
 
     try:
-        filename = hindi_trans(text)  # Generates a unique filename
-        return jsonify({"audio_file": f"/audio/{filename}"})  # Return correct path
+        filename = hindi_trans(text)
+        return jsonify({"audio_file": f"/audio/{filename}"})  # Return correct file path
     except Exception as e:
         print("❌ ERROR in /text_2_speech:", str(e))
         traceback.print_exc()
         return jsonify({"error": "Text-to-Speech Error", "details": str(e)}), 500
 
+# Serve audio files
 @app.route("/audio/<filename>")
-def serve_audio(filename):
-    """ Serve generated audio files. """
-    return send_from_directory(AUDIO_FOLDER, filename)
+def get_audio(filename):
+    """ Serve the audio file from the server. """
+    return send_from_directory(AUDIO_DIR, filename)
 
 if __name__ == "__main__":
     print("🚀 Flask API is starting on port 10000...")
     app.run(host="0.0.0.0", port=10000, debug=True)
-
