@@ -3,7 +3,7 @@ import requests
 import plotly.express as px
 import time  # To create unique keys
 
-# API endpoint (Update with your actual Render API URL)
+# API endpoint
 API_URL = "https://analyzer-tts.onrender.com"
 
 # Set page configurations
