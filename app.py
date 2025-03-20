@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
 import plotly.express as px
+import time  # To create unique keys
 
-# API endpoint 
+# API endpoint (Update with your actual Render API URL)
 API_URL = "https://analyzer-tts.onrender.com"
 
 # Set page configurations
@@ -16,7 +17,7 @@ st.set_page_config(
 st.sidebar.title("🔍 Navigation")
 page = st.sidebar.radio("Go to", ["Home", "Sentiment Analysis", "Settings"])
 
-# Dark/light mode toggle
+# Dark mode toggle
 dark_mode = st.sidebar.checkbox("🌙 Dark Mode")
 if dark_mode:
     st.markdown("<style>body { background-color: #1E1E1E; color: white; }</style>", unsafe_allow_html=True)
@@ -61,17 +62,25 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
-                # Audio Button with Unique Filename
-                if st.button(f"🎙️ Convert to Hindi {i+1}", key=f"tts_{i}"):
+                # Generate Unique Key for Each Button to Avoid Caching
+                unique_key = f"tts_{i}_{int(time.time())}"
+
+                if st.button(f"🎙️ Convert to Hindi {i+1}", key=unique_key):
                     with st.spinner("Generating Hindi audio... 🎧"):
                         tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
-                        
+
                         if tts_response.status_code == 200:
                             audio_data = tts_response.json()
-                            audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # ✅ Unique file per article
-                            st.audio(audio_file_url)
+
+                            if "audio_file" in audio_data:
+                                audio_file_url = f"{API_URL}/{audio_data['audio_file']}"  # Fix missing "/"
+                                st.success("✅ Audio generated successfully!")
+                                st.audio(audio_file_url)
+                            else:
+                                st.error("⚠️ Audio file not found in response.")
+
                         else:
-                            st.error("❌ Failed to generate audio.")
+                            st.error("❌ Failed to generate audio. Try again later.")
 
 # Sentiment Analysis Page - Display sentiment distribution chart
 elif page == "Sentiment Analysis":
