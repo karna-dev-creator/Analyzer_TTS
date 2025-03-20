@@ -4,29 +4,29 @@ import plotly.express as px
 
 API_URL = "http://127.0.0.1:5000"
 
-# set page configurations
+# Set page configurations
 st.set_page_config(
     page_title="News Sentiment Analyzer",
     page_icon="📰",
     layout="wide"
 )
 
-# ssidebar navigation
+# Sidebar navigation
 st.sidebar.title("🔍 Navigation")
 page = st.sidebar.radio("Go to", ["Home", "Sentiment Analysis", "Settings"]) 
 
-# dark/light mode toggle
+# Dark/light mode toggle
 dark_mode = st.sidebar.checkbox("🌙 Dark Mode")
 
 if dark_mode:
     st.markdown("<style>body { background-color: #1E1E1E; color: white; }</style>", unsafe_allow_html=True)
 
-#home Page - fetch news and display
+# Home Page - fetch news and display
 if page == "Home":
     st.title("📰 AI-Powered News Sentiment Analyzer")
     st.write("Analyze the latest news, extract key topics, and convert summaries to Hindi speech!")
 
-    #user iinput for company name
+    # User input for company name
     company_name = st.text_input("🔍 Enter a Company Name:")
     
     col1, col2 = st.columns([1, 1])
@@ -49,9 +49,9 @@ if page == "Home":
             else:
                 st.warning("No articles found.")
 
-    #display news articles
+    # Display news articles
     if "news_data" in st.session_state:
-        st.subheader(f" Fecthed News Articles for {st.session_state.news_data['company']}")
+        st.subheader(f"Fetched News Articles for {st.session_state.news_data['company']}")
 
         sentiments = {"Positive": 0, "Negative": 0, "Neutral": 0} 
 
@@ -66,13 +66,13 @@ if page == "Home":
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
                 # Audio Button with Loading animation
-                if st.button(f"🎙️ press to convert to Hindi {i+1}", key=f"tts_{i}"):
+                if st.button(f"🎙️ Press to Convert to Hindi {i+1}", key=f"tts_{i}"):
                     with st.spinner("Generating Hindi audio... 🎧"):
                         tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
                         if tts_response.status_code == 200:
                             st.audio("output.mp3")
 
-# Sentiment analysis page - display sentiment Distribution Chart
+# Sentiment analysis page - display sentiment distribution chart
 elif page == "Sentiment Analysis":
     st.title("📊 Sentiment Analysis")
     
@@ -83,10 +83,10 @@ elif page == "Sentiment Analysis":
             sentiments[article["sentiment"]] += 1
 
         fig = px.pie(
-    names=list(sentiments.keys()), 
-    values=list(sentiments.values()), 
-    title="Sentiment Analyzation of Articles", 
-    color_discrete_map={"Positive": "#2E8B57", "Negative": "#FF4500", "Neutral": "#FFD700"}
+            names=list(sentiments.keys()), 
+            values=list(sentiments.values()), 
+            title="Sentiment Analysis of Articles", 
+            color_discrete_map={"Positive": "#2E8B57", "Negative": "#FF4500", "Neutral": "#FFD700"}
         )
         st.plotly_chart(fig)
     else:
