@@ -63,8 +63,8 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
-                # Generate Unique Key for Each Button
-                unique_key = f"tts_{i}"
+                # Unique key for each article
+                unique_key = f"tts_{i}_{int(time.time())}" 
 
                 # Button for generating text-to-speech
                 if st.button(f"🎙️ Convert to Hindi {i+1}", key=unique_key):
@@ -75,8 +75,8 @@ if page == "Home":
                             audio_data = tts_response.json()
 
                             if "audio_file" in audio_data:
-                                audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Fix missing "/"
-                                st.session_state.audio_files[unique_key] = audio_file_url  # Store file path
+                                audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Ensure correct file path
+                                st.session_state.audio_files[i] = audio_file_url  # Store unique file for each article
                                 st.success("✅ Audio generated successfully!")
                             else:
                                 st.error("⚠️ Audio file not found in response.")
@@ -85,8 +85,8 @@ if page == "Home":
                             st.error("❌ Failed to generate audio. Try again later.")
 
                 # Play the generated audio if it exists
-                if unique_key in st.session_state.audio_files:
-                    st.audio(st.session_state.audio_files[unique_key])
+                if i in st.session_state.audio_files:
+                    st.audio(st.session_state.audio_files[i])
 
 # Sentiment Analysis Page - Display sentiment distribution chart
 elif page == "Sentiment Analysis":
