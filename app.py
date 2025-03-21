@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import plotly.express as px
+import time  
 
 # API endpoint
 API_URL = "https://analyzer-tts.onrender.com"
@@ -46,7 +47,7 @@ if page == "Home":
 
             if response.status_code == 200:
                 st.session_state.news_data = response.json()
-                st.session_state.audio_files = {}  # ✅ Reset audio storage for new request
+                st.session_state.audio_files = {}  # Reset audio files
             else:
                 st.warning("⚠️ No articles found.")
 
@@ -72,11 +73,10 @@ if page == "Home":
 
                         if tts_response.status_code == 200:
                             audio_data = tts_response.json()
-                            st.write("🔍 **API Response:**", audio_data)  # ✅ Debugging: See filename
 
                             if "audio_file" in audio_data:
-                                audio_file_url = f"{API_URL}/{audio_data['audio_file']}"  
-                                st.session_state.audio_files[unique_key] = audio_file_url  # ✅ Store new file
+                                audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Fix missing "/"
+                                st.session_state.audio_files[unique_key] = audio_file_url  # Store file path
                                 st.success("✅ Audio generated successfully!")
                             else:
                                 st.error("⚠️ Audio file not found in response.")
@@ -111,4 +111,4 @@ elif page == "Sentiment Analysis":
 # Settings Page
 elif page == "Settings":
     st.title("⚙️ Settings")
-    st.write("🔧 No settings available yet. More features coming soon! 🚀") 
+    st.write("🔧 No settings available yet. More features coming soon! 🚀")
