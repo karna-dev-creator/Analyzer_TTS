@@ -1,8 +1,6 @@
 import streamlit as st
 import requests
 import plotly.express as px
-import time  
-import random  # Import random for unique request parameter
 
 # API endpoint
 API_URL = "https://analyzer-tts.onrender.com"
@@ -48,7 +46,7 @@ if page == "Home":
 
             if response.status_code == 200:
                 st.session_state.news_data = response.json()
-                st.session_state.audio_files = {}  # Reset audio files
+                st.session_state.audio_files = {}  # ✅ Reset audio storage for new request
             else:
                 st.warning("⚠️ No articles found.")
 
@@ -64,22 +62,22 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
+                # Generate Unique Key for Each Button
+                unique_key = f"tts_{i}"
+
                 # Button for generating text-to-speech
-                if st.button(f"🎙️ Convert to Hindi {i+1}", key=f"btn_{i}"):
+                if st.button(f"🎙️ Convert to Hindi {i+1}", key=unique_key):
                     with st.spinner("Generating Hindi audio... 🎧"):
-                        tts_response = requests.post(
-                            f"{API_URL}/text_2_speech",
-                            json={"text": article["title"], "random_seed": random.randint(1, 10000)}  # Ensure uniqueness
-                        )
+                        tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
 
                         if tts_response.status_code == 200:
                             audio_data = tts_response.json()
+                            st.write("🔍 **API Response:**", audio_data)  # ✅ Debugging: See filename
 
                             if "audio_file" in audio_data:
-                                audio_file_url = f"{API_URL}{audio_data['audio_file']}?t={int(time.time())}"  # Prevent caching
-                                st.session_state.audio_files[i] = audio_file_url  # Store unique file for each article
+                                audio_file_url = f"{API_URL}/{audio_data['audio_file']}"  
+                                st.session_state.audio_files[unique_key] = audio_file_url  # ✅ Store new file
                                 st.success("✅ Audio generated successfully!")
-                                st.experimental_rerun()  # Force UI refresh
                             else:
                                 st.error("⚠️ Audio file not found in response.")
 
@@ -87,8 +85,8 @@ if page == "Home":
                             st.error("❌ Failed to generate audio. Try again later.")
 
                 # Play the generated audio if it exists
-                if i in st.session_state.audio_files:
-                    st.audio(st.session_state.audio_files[i])
+                if unique_key in st.session_state.audio_files:
+                    st.audio(st.session_state.audio_files[unique_key])
 
 # Sentiment Analysis Page - Display sentiment distribution chart
 elif page == "Sentiment Analysis":
@@ -113,4 +111,4 @@ elif page == "Sentiment Analysis":
 # Settings Page
 elif page == "Settings":
     st.title("⚙️ Settings")
-    st.write("🔧 No settings available yet. More features coming soon! 🚀")
+    st.write("🔧 No settings available yet. More features coming soon! 🚀") 
