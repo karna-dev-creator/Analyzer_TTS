@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import plotly.express as px
 import time  
+import random  # Import random for unique request parameter
 
 # API endpoint
 API_URL = "https://analyzer-tts.onrender.com"
@@ -63,21 +64,22 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
-                # Unique key for each article
-                unique_key = f"tts_{i}_{int(time.time())}" 
-
                 # Button for generating text-to-speech
-                if st.button(f"🎙️ Convert to Hindi {i+1}", key=unique_key):
+                if st.button(f"🎙️ Convert to Hindi {i+1}", key=f"btn_{i}"):
                     with st.spinner("Generating Hindi audio... 🎧"):
-                        tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
+                        tts_response = requests.post(
+                            f"{API_URL}/text_2_speech",
+                            json={"text": article["title"], "random_seed": random.randint(1, 10000)}  # Ensure uniqueness
+                        )
 
                         if tts_response.status_code == 200:
                             audio_data = tts_response.json()
 
                             if "audio_file" in audio_data:
-                                audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Ensure correct file path
+                                audio_file_url = f"{API_URL}{audio_data['audio_file']}?t={int(time.time())}"  # Prevent caching
                                 st.session_state.audio_files[i] = audio_file_url  # Store unique file for each article
                                 st.success("✅ Audio generated successfully!")
+                                st.experimental_rerun()  # Force UI refresh
                             else:
                                 st.error("⚠️ Audio file not found in response.")
 
