@@ -1,33 +1,32 @@
 import streamlit as st
 import requests
 import plotly.express as px
-import time  
 
-# API endpoint
-API_URL = "https://analyzer-tts.onrender.com"
+API_URL = "http://127.0.0.1:5000"
 
-# Set page configurations
+# set page configurations
 st.set_page_config(
     page_title="News Sentiment Analyzer",
     page_icon="📰",
     layout="wide"
 )
 
-# Sidebar navigation
+# ssidebar navigation
 st.sidebar.title("🔍 Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Sentiment Analysis", "Settings"])
+page = st.sidebar.radio("Go to", ["Home", "Sentiment Analysis", "Settings"]) 
 
-# Dark mode toggle
+# dark/light mode toggle
 dark_mode = st.sidebar.checkbox("🌙 Dark Mode")
+
 if dark_mode:
     st.markdown("<style>body { background-color: #1E1E1E; color: white; }</style>", unsafe_allow_html=True)
 
-# Home Page - Fetch and display news
+#home Page - fetch news and display
 if page == "Home":
     st.title("📰 AI-Powered News Sentiment Analyzer")
     st.write("Analyze the latest news, extract key topics, and convert summaries to Hindi speech!")
 
-    # User input for company name
+    #user iinput for company name
     company_name = st.text_input("🔍 Enter a Company Name:")
     
     col1, col2 = st.columns([1, 1])
@@ -47,15 +46,18 @@ if page == "Home":
 
             if response.status_code == 200:
                 st.session_state.news_data = response.json()
-                st.session_state.audio_files = {}  # Reset audio files
             else:
-                st.warning("⚠️ No articles found.")
+                st.warning("No articles found.")
 
-    # Display news articles
+    #display news articles
     if "news_data" in st.session_state:
-        st.subheader(f"📢 Fetched News Articles for {st.session_state.news_data['company']}")
+        st.subheader(f" Fecthed News Articles for {st.session_state.news_data['company']}")
+
+        sentiments = {"Positive": 0, "Negative": 0, "Neutral": 0} 
 
         for i, article in enumerate(st.session_state.news_data["articles"]):
+            sentiments[article["sentiment"]] += 1 
+
             with st.expander(f"📌 {article['title']}"):
                 st.write(f"🔹 **Sentiment:** {article['sentiment']}")
                 st.write(f"🔗 [Read More]({article['link']})")
@@ -63,52 +65,34 @@ if page == "Home":
                 st.write(f"📰 Source: **{article['source']}**")
                 st.write(f"📌 **Keywords:** {', '.join(article['keywords'])}")
 
-                # Generate Unique Key for Each Button
-                unique_key = f"tts_{i}"
-
-                # Button for generating text-to-speech
-                if st.button(f"🎙️ Convert to Hindi {i+1}", key=unique_key):
+                # Audio Button with Loading animation
+                if st.button(f"🎙️ press to convert to Hindi {i+1}", key=f"tts_{i}"):
                     with st.spinner("Generating Hindi audio... 🎧"):
                         tts_response = requests.post(f"{API_URL}/text_2_speech", json={"text": article["title"]})
-
                         if tts_response.status_code == 200:
-                            audio_data = tts_response.json()
+                            st.audio("output.mp3")
 
-                            if "audio_file" in audio_data:
-                                audio_file_url = f"{API_URL}{audio_data['audio_file']}"  # Fix missing "/"
-                                st.session_state.audio_files[unique_key] = audio_file_url  # Store file path
-                                st.success("✅ Audio generated successfully!")
-                            else:
-                                st.error("⚠️ Audio file not found in response.")
-
-                        else:
-                            st.error("❌ Failed to generate audio. Try again later.")
-
-                # Play the generated audio if it exists
-                if unique_key in st.session_state.audio_files:
-                    st.audio(st.session_state.audio_files[unique_key])
-
-# Sentiment Analysis Page - Display sentiment distribution chart
+# Sentiment analysis page - display sentiment Distribution Chart
 elif page == "Sentiment Analysis":
     st.title("📊 Sentiment Analysis")
-
+    
     if "news_data" in st.session_state:
         sentiments = {"Positive": 0, "Negative": 0, "Neutral": 0}
-
+        
         for article in st.session_state.news_data["articles"]:
             sentiments[article["sentiment"]] += 1
 
         fig = px.pie(
-            names=list(sentiments.keys()), 
-            values=list(sentiments.values()), 
-            title="Sentiment Distribution of Articles", 
-            color_discrete_map={"Positive": "#2E8B57", "Negative": "#FF4500", "Neutral": "#FFD700"}
+    names=list(sentiments.keys()), 
+    values=list(sentiments.values()), 
+    title="Sentiment Analyzation of Articles", 
+    color_discrete_map={"Positive": "#2E8B57", "Negative": "#FF4500", "Neutral": "#FFD700"}
         )
         st.plotly_chart(fig)
     else:
-        st.warning("⚠️ No data available. Please fetch news first.")
+        st.warning("No data available. Please fetch news first.")
 
 # Settings Page
 elif page == "Settings":
     st.title("⚙️ Settings")
-    st.write("🔧 No settings available yet. More features coming soon! 🚀")
+    st.write("No settings available yet. More features coming soon! 🚀")

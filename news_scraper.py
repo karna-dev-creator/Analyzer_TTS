@@ -1,34 +1,32 @@
 import requests
-import os
 
-API_KEY = os.getenv("GNEWS_API_KEY")  # Load API key from environment variables
+NEWS_API_KEY = "69831002870340c5a08ce259c555f639" 
 
 def com_article(company_name, start_date=None, end_date=None):
-    if not API_KEY:
-        print("❌ Error: API key not found.")
-        return []
+    url = f"https://newsapi.org/v2/everything?q={company_name}&apiKey={NEWS_API_KEY}"
 
-    url = f"https://gnews.io/api/v4/search?q={company_name}&apikey={API_KEY}&lang=en"
+    #  add date filters only if provided
+    if start_date:
+        url += f"&from={start_date}"
+    if end_date:
+        url += f"&to={end_date}"
 
-    print(f"🔍 Fetching articles from: {url}")  # Debugging line
+    # set language filter
+    url += "&language=en"
 
     response = requests.get(url)
-
-    print(f"🔎 API Status Code: {response.status_code}")  # Debugging line
-    print(f"📜 API Response: {response.text}")  # Debugging line
-
     if response.status_code != 200:
-        print("❌ API Error:", response.text)
+        print("Error fetching news:", response.text) 
         return []
 
     data = response.json()
 
     if "articles" not in data or not data["articles"]:
-        print("❌ No articles found in API response.")  # Debugging line
-        return []
+        return []  # eeturn empty list if no articles are found
 
     articles = []
-    for item in data["articles"][:10]:  # Get top 10 articles
+
+    for item in data["articles"][:10]:  # get top 10 articles
         articles.append({
             "title": item.get("title", "No title available"),
             "summary": item.get("description", "No summary available"),
@@ -37,5 +35,4 @@ def com_article(company_name, start_date=None, end_date=None):
             "source": item["source"].get("name", "Unknown source")
         })
 
-    print(f"✅ Articles fetched successfully: {len(articles)} articles found.")  # Debugging line
     return articles
